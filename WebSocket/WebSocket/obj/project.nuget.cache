@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "vGbjPOt8EWTci485HcpknwkaihR3/TIgLlTMzukwK+eyF9HEmasVKacDh2E+6MQOinA25bJ145auY95TR4XevQ==",
+  "dgSpecHash": "yD1n3Dr45fjDk+DzSMgcRVUkJt+Pn2DQGnkig6d/NkC6E26TA04RXNRX/vrnhxqM/tzKigb4KTeUu1z61Oz2qQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\lenovo\\Desktop\\My\\Projects\\SignalRApplication\\WebSocket\\WebSocket\\WebSocket.csproj",
+  "projectFilePath": "D:\\DIM\\Zahid\\Projects\\SignalR\\WebSocket\\WebSocket\\WebSocket.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

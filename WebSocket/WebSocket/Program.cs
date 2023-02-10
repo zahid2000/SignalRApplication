@@ -1,3 +1,4 @@
+using WebSocket.Business;
 using WebSocket.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,9 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddSignalR();
+
+builder.Services.AddScoped<MyBusiness>();
+builder.Services.AddControllers();
 var app = builder.Build();
 
 app.UseCors();
@@ -20,5 +24,6 @@ app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<MyHub>("/myhub");
+    endpoints.MapControllers();
 });
 app.Run();
