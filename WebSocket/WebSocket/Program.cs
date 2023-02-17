@@ -23,6 +23,7 @@ app.UseRouting();
 //app.MapGet("/", () => "Hello World!");
 app.UseEndpoints(endpoints =>
 {
+    endpoints.MapHub<MessageHub>("/messagehub");
     endpoints.MapHub<MyHub>("/myhub");
     endpoints.MapControllers();
 });

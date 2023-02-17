@@ -1,97 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <script src="signalr.min.js"></script>
+    <script src="jquery.min.js"></script>
+    <script>
+      $(document).ready(() => {
+        const connection = new signalR.HubConnectionBuilder()
+          .withUrl("https://localhost:7031/messagehub")
+          .withAutomaticReconnect([1000, 1000, 2000]) //0-2-10-30 --> bu funksiya baglanti var lakin qirildigi anlarda isleyir
+          .build();
 
-<head>
-  <script src="signalr.min.js"></script>
-  <script src="jquery.min.js"></script>
-  <script>
-    $(document).ready(() => {
-      const connection = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:7031/myhub")
-        .withAutomaticReconnect([1000, 1000, 2000]) //0-2-10-30 --> bu funksiya baglanti var lakin qirildigi anlarda isleyir
-        .build();
-
-      //Baglanti hec yaranmadigi hallarda
-      async function start() {
-        try {
-          await connection.start();
-        } catch (error) {
-          setTimeout(() => {
-            start();
-          }, 2000);
+        //Baglanti hec yaranmadigi hallarda
+        async function start() {
+          try {
+            await connection.start();
+          } catch (error) {
+            setTimeout(() => {
+              start();
+            }, 2000);
+          }
         }
-      }
-      start();
+        start();
 
-      const state = $("#state");
-      //onreconnecting
-      connection.onreconnecting((error) => {
-        changeState("blue", "white", "Bağlantı qurulur...")
-      });
-      //onreconnecting
-      connection.onreconnected((connectionId) => {
-        changeState("green", "white", "Bağlantı quruldu")
-      });
-      //onclose
-      connection.onclose((connectionId) => {
-        changeState("red", "white", "Bağlantı qurula bilmədi")
-      });
-
-      connection.on("userJoined", connectionId => {
-        changeState("yellow", "black", `${connectionId} baglandi`)
-      })
-
-      connection.on("userLeaved", connectionId => {
-        changeState("red", "white", `${connectionId} ayrildi`)
-      })
-
-      connection.on("clients", clientData => {
-        let text="";
-        $.each(clientData,(index,item)=>{
-          text+=`<li>${item}</li>`
-        })
-
-        $("#clients").html(text)
-      })
-
-      function changeState(bgColor, color, message) {
-        state.css("background-color", bgColor);
-        state.css("color", color)
-        state.html(message)
-        state.fadeIn(1000, () => {
-          setTimeout(() => {
-            state.fadeOut(1000)
-          }, 200);
-        })
-      }
-      //send btn
-      $("#btnSend").click(() => {
-        let message = $("#txtMessage").val();
-        connection.invoke("SenMessageAsync", message).catch((error) => {
-          console.log(`mesaj gonderilirken hata olusu ${error}`);
+        const state = $("#state");
+        //onreconnecting
+        connection.onreconnecting((error) => {
+          changeState("blue", "white", "Bağlantı qurulur...");
         });
+        //onreconnecting
+        connection.onreconnected((connectionId) => {
+          changeState("green", "white", "Bağlantı quruldu");
+        });
+        //onclose
+        connection.onclose((connectionId) => {
+          changeState("red", "white", "Bağlantı qurula bilmədi");
+        });
+
+        // connection.on("userJoined", connectionId => {
+        //   changeState("yellow", "black", `${connectionId} baglandi`)
+        // })
+
+        // connection.on("userLeaved", connectionId => {
+        //   changeState("red", "white", `${connectionId} ayrildi`)
+        // })
+
+        // connection.on("clients", clientData => {
+        //   let text="";
+        //   $.each(clientData,(index,item)=>{
+        //     text+=`<li>${item}</li>`
+        //   })
+
+        //   $("#clients").html(text)
+        // })
+
+        function changeState(bgColor, color, message) {
+          state.css("background-color", bgColor);
+          state.css("color", color);
+          state.html(message);
+          state.fadeIn(1000, () => {
+            setTimeout(() => {
+              state.fadeOut(1000);
+            }, 200);
+          });
+        }
+        //send btn
+        $("#btnSend").click(() => {
+          let message = $("#txtMessage").val();
+          let connectionIds = $("#connectionIds").val().split(",");
+          // connection
+          //   .invoke("SendMessageAsync", message, connectionIds)
+          //   .catch((error) => {
+          //     console.log(`mesaj gonderilirken hata olusu ${error}`);
+          //   });
+          let groupName=$("input[name=group]:checked").val()
+          // connection
+          //   .invoke("SendMessageAsync", message, groupName,connectionIds)
+          //   .catch((error) => {
+          //     console.log(`mesaj gonderilirken hata olusu ${error}`);
+          //   });
+          // let groups=$("#txtGroups").val().split(",")
+              connection
+            .invoke("SendMessageAsync", message, groupName)
+            .catch((error) => {
+              console.log(`mesaj gonderilirken hata olusu ${error}`);
+            });
+        });
+
+        connection.on("receiveMessage", (message) => {
+          $("#messages").append(message + "<br>");
+        });
+        let _connectionId;
+        connection.on("getConnectionId", (connectionId) => {
+          _connectionId=connectionId;
+          $("#connectionId").html(`Connection id : ${connectionId}`);
+        });
+        $("#btnEnterGroup").click(()=>{
+          let groupName=$("input[name=group]:checked").val()
+         connection
+         .invoke("AddToGroup",_connectionId,groupName)
+         .catch((error) => {
+              console.log(`mesaj gonderilirken hata olusu ${error}`);
+            });
+
+        })
       });
+    </script>
+  </head>
 
-      connection.on("receiveMessage", (message) => {
-        $("#messages").append(message + "<br>");
-      });
+  <body>
+    <div
+      style="background-color: darkblue; color: aliceblue; margin-bottom: 5px"
+      id="connectionId"
+    ></div>
 
+    <div id="state" style="display: none"></div>
+    <input type="radio" name="group" value="A" /> A
+    <input type="radio" name="group" value="B" /> B
+    <input type="radio" name="group" value="C" /> C
+    <button id="btnEnterGroup">Enter Group</button>
+    <br />
+    <input type="text" id="txtMessage" placeholder="Mesaj" /><br>
+    <input type="text" id="txtGroups" placeholder="Groups" />
+  
+    <br />
+    <textarea
+      id="connectionIds"
+      cols="30"
+      rows="10"
+      placeholder="Connection Id"
+    ></textarea>
+    <button id="btnSend">Send</button>
 
-
-    });
-  </script>
-</head>
-
-<body>
-  <div id="state" style="display: none"></div>
-
-  <input type="text" id="txtMessage" />
-  <button id="btnSend">Send</button>
-
-  <div id="messages"></div>
-  <div>
-    <ul id="clients"></ul>
-  </div>
-</body>
-
+    <div id="messages"></div>
+  </body>
 </html>
